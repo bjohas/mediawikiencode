@@ -5,6 +5,9 @@
 # Check whether pbaste exists
 ($path = `which pbpaste`)=~ s/\n//;
 
+# Whether to add template
+$template = 1;
+
 if ($#ARGV == -1) {
     if ($path ne "") {
 	print STDERR "Reading from clipboard.\n";
@@ -25,12 +28,14 @@ if ($#ARGV == -1) {
 { {{(}}
 }} {{))}}
 } {{)}}';
-@find = keys %replace;
+# The cmp is needed because the order in hash is not guaranteed:
+@find = sort {$b cmp $a} keys %replace;
 &replace;
 
 # replace ||,|
 %replace = qw'|| {{!!}}
 | {{!}}';
+# Separate assignement needed because of evaluation:
 @find = qw'\|\| \|';
 &replace;
 
@@ -39,6 +44,10 @@ if ($#ARGV == -1) {
 ; {{;}}';
 @find = keys %replace;
 #&replace;
+
+if ($template) {
+    $_ = "{{OverpassTurboExample|run=1|query=\n".$_."}}";
+};
 
 # Print results
 print;
@@ -50,7 +59,6 @@ if ($path ne "") {
     print F;
     close F;
 };
-
 
 sub replace {
     $patt = join "|",@find;
